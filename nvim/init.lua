@@ -2,8 +2,7 @@
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
--- [[ Basic Options ]]
-vim.opt.number = true
+-- im.opt.number = true
 vim.opt.mouse = "a"
 vim.opt.encoding = "utf-8"
 vim.opt.swapfile = false
@@ -44,6 +43,9 @@ vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, { desc = "Show diagn
 vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "Prev diagnostic" })
 vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
 vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Diagnostic [Q]uickfix" })
+
+-- Exit terminal mode
+vim.keymap.set("t", "<C-x>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 
 -- Buffer navigation
 vim.keymap.set("n", "<Tab>", "<cmd>bnext<CR>", { desc = "Next buffer" })
@@ -299,7 +301,7 @@ require("lazy").setup({
   -- Telescope (fuzzy finder)
   {
     "nvim-telescope/telescope.nvim",
-    tag = "0.1.8",
+    branch = "master",
     dependencies = {
       "nvim-lua/plenary.nvim",
       { "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
@@ -401,6 +403,36 @@ require("lazy").setup({
         { "<leader>c", group = "[C]ode" },
         { "<leader>b", group = "[B]uffer" },
         { "<leader>g", group = "[G]it" },
+      })
+    end,
+  },
+
+  -- Remote editing
+  {
+    "amitds1997/remote-nvim.nvim",
+    version = "*",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "MunifTanjim/nui.nvim",
+      "nvim-telescope/telescope.nvim",
+    },
+    opts = {
+      neovim_install_behavior = "force",
+      neovim_version = "v0.9.5",
+      remote = {
+        app_name = "nvim",
+        copy_dirs = {
+          config = { base = vim.fn.stdpath("config"), dirs = "*", compression = { enabled = false } },
+        },
+      },
+    },
+    config = function(_, opts)
+      require("remote-nvim").setup(opts)
+      vim.api.nvim_create_autocmd("User", {
+        pattern = "RemoteNvimConnected",
+        callback = function()
+          vim.cmd("cd /home/ANT.AMAZON.COM/adhsh")
+        end,
       })
     end,
   },
