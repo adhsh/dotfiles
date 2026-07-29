@@ -3,6 +3,7 @@ set nocompatible
 call plug#begin('~/.vim/plugged')
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
+Plug 'morhetz/gruvbox'
 call plug#end()
 
 set encoding=utf-8
@@ -22,6 +23,8 @@ set scrolloff=8
 set noswapfile
 set backspace=indent,eol,start
 syntax on
+set background=dark
+autocmd vimenter * ++nested colorscheme gruvbox
 
 nnoremap <C-p> :Files<CR>
 nnoremap <leader>fg :Rg<CR>
