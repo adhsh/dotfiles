@@ -24,7 +24,12 @@ set noswapfile
 set backspace=indent,eol,start
 syntax on
 set background=dark
-autocmd vimenter * ++nested colorscheme gruvbox
+colorscheme gruvbox
+
+command! -bang -nargs=* Rg
+  \ call fzf#vim#grep(
+  \   'rg --column --line-number --no-heading --color=always --smart-case -- '.shellescape(<q-args>),
+  \   1, fzf#vim#with_preview(), <bang>0)
 
 nnoremap <C-p> :Files<CR>
 nnoremap <leader>fg :Rg<CR>
