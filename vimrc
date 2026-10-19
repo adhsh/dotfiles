@@ -2,8 +2,11 @@ set nocompatible
 
 call plug#begin('~/.vim/plugged')
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'dense-analysis/ale'
 Plug 'junegunn/fzf.vim'
+Plug 'junegunn/fzf', { 'do': {-> fzf#install() } }
 Plug 'morhetz/gruvbox'
+Plug 'andymass/vim-matchup'
 call plug#end()
 
 set encoding=utf-8
@@ -24,8 +27,6 @@ set noswapfile
 set backspace=indent,eol,start
 syntax on
 set background=dark
-colorscheme gruvbox
-
 command! -bang -nargs=* Rg
   \ call fzf#vim#grep(
   \   'rg --column --line-number --no-heading --color=always --smart-case -- '.shellescape(<q-args>),
@@ -34,3 +35,8 @@ command! -bang -nargs=* Rg
 nnoremap <C-p> :Files<CR>
 nnoremap <leader>fg :Rg<CR>
 nnoremap <leader>fb :Buffers<CR>
+nnoremap gd :ALEGoToDefinition<CR>
+nnoremap gr :ALEFindReferences<CR>
+nnoremap gh :ALEHover<CR>
+let g:ale_completion_enabled=1
+set omnifunc=ale#completion#omniFunc
