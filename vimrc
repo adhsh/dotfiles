@@ -6,7 +6,6 @@ Plug 'dense-analysis/ale'
 Plug 'junegunn/fzf.vim'
 Plug 'junegunn/fzf', { 'do': {-> fzf#install() } }
 Plug 'morhetz/gruvbox'
-Plug 'andymass/vim-matchup'
 call plug#end()
 
 set encoding=utf-8
@@ -40,3 +39,10 @@ nnoremap gr :ALEFindReferences<CR>
 nnoremap gh :ALEHover<CR>
 let g:ale_completion_enabled=1
 set omnifunc=ale#completion#omniFunc
+
+
+set autoindent
+set smartindent
+set smarttab
+set softtabstop = 4
+set si
