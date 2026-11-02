@@ -25,6 +25,9 @@ set scrolloff=8
 set noswapfile
 set backspace=indent,eol,start
 syntax on
+set visualbell
+
+
 set background=dark
 command! -bang -nargs=* Rg
   \ call fzf#vim#grep(
@@ -43,6 +46,7 @@ set omnifunc=ale#completion#omniFunc
 
 set autoindent
 set smartindent
-set smarttab
-set softtabstop = 4
 set si
+set softtabstop=4
+set ruler
+set backspace=indent,eol,start
