@@ -26,6 +26,7 @@ set noswapfile
 set backspace=indent,eol,start
 syntax on
 set visualbell
+set clipboard=unnamed
 
 
 set background=dark
