@@ -1,55 +1,83 @@
--- Set leader before plugins load
+-- ============================================================
+--  Leader (must be set before plugins load)
+-- ============================================================
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
--- im.opt.number = true
+
+-- ============================================================
+--  Options
+-- ============================================================
+
+-- General
 vim.opt.mouse = "a"
 vim.opt.encoding = "utf-8"
+vim.opt.fileformat = "unix"
 vim.opt.swapfile = false
+vim.opt.updatetime = 250
+vim.opt.timeoutlen = 300
+
+-- UI
+-- vim.opt.number = true
+vim.opt.signcolumn = "yes"
+vim.opt.cursorline = true
 vim.opt.scrolloff = 7
+vim.opt.splitright = true
+vim.opt.splitbelow = true
+
+-- Indentation
 vim.opt.tabstop = 4
 vim.opt.softtabstop = 4
 vim.opt.shiftwidth = 4
 vim.opt.autoindent = true
-vim.opt.fileformat = "unix"
-vim.opt.signcolumn = "yes"
+
+-- Search
 vim.opt.hlsearch = true
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
-vim.opt.updatetime = 250
-vim.opt.timeoutlen = 300
-vim.opt.splitright = true
-vim.opt.splitbelow = true
-vim.opt.cursorline = true
 
--- Treesitter folding
+-- Folding (treesitter)
 vim.o.foldlevel = 20
 vim.wo.foldmethod = "expr"
 vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
 
--- [[ Basic Keymaps ]]
+
+-- ============================================================
+--  Keymaps
+-- ============================================================
+
+-- Clear search highlight
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
+
+-- Move splits
 vim.keymap.set("n", "<C-S-Up>", "<C-W>K", { desc = "Move split up" })
 vim.keymap.set("n", "<C-S-Down>", "<C-W>J", { desc = "Move split down" })
 vim.keymap.set("n", "<C-S-Left>", "<C-W>H", { desc = "Move split left" })
 vim.keymap.set("n", "<C-S-Right>", "<C-W>L", { desc = "Move split right" })
+
+-- Move focus between splits
 vim.keymap.set("n", "<C-h>", "<C-w><C-h>", { desc = "Move focus left" })
 vim.keymap.set("n", "<C-l>", "<C-w><C-l>", { desc = "Move focus right" })
 vim.keymap.set("n", "<C-j>", "<C-w><C-j>", { desc = "Move focus down" })
 vim.keymap.set("n", "<C-k>", "<C-w><C-k>", { desc = "Move focus up" })
 
--- Diagnostic keymaps
+-- Buffers
+vim.keymap.set("n", "<Tab>", "<cmd>bnext<CR>", { desc = "Next buffer" })
+vim.keymap.set("n", "<S-Tab>", "<cmd>bprevious<CR>", { desc = "Prev buffer" })
+
+-- Diagnostics
 vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, { desc = "Show diagnostic [E]rror" })
 vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "Prev diagnostic" })
 vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
 vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Diagnostic [Q]uickfix" })
 
--- Exit terminal mode
+-- Terminal
 vim.keymap.set("t", "<C-x>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 
--- Buffer navigation
-vim.keymap.set("n", "<Tab>", "<cmd>bnext<CR>", { desc = "Next buffer" })
-vim.keymap.set("n", "<S-Tab>", "<cmd>bprevious<CR>", { desc = "Prev buffer" })
+
+-- ============================================================
+--  Autocommands
+-- ============================================================
 
 -- Highlight on yank
 vim.api.nvim_create_autocmd("TextYankPost", {
@@ -59,7 +87,21 @@ vim.api.nvim_create_autocmd("TextYankPost", {
   end,
 })
 
--- [[ Install lazy.nvim ]]
+-- Auto-run bemol on VimEnter for Brazil workspaces
+vim.api.nvim_create_autocmd("VimEnter", {
+  callback = function()
+    local package_info = vim.fs.find({ "packageInfo" }, { upward = true })[1]
+    if package_info then
+      local ws_root = vim.fn.fnamemodify(package_info, ":h")
+      vim.fn.system("cd " .. vim.fn.shellescape(ws_root) .. " && bemol 2>/dev/null")
+    end
+  end,
+})
+
+
+-- ============================================================
+--  Plugin manager (lazy.nvim bootstrap)
+-- ============================================================
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
   local out = vim.fn.system({
@@ -74,8 +116,15 @@ if not vim.loop.fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
--- [[ Plugins ]]
+
+-- ============================================================
+--  Plugins
+-- ============================================================
 require("lazy").setup({
+
+  -- ----------------------------------------------------------
+  --  UI
+  -- ----------------------------------------------------------
 
   -- Colorscheme
   {
@@ -145,6 +194,87 @@ require("lazy").setup({
     },
   },
 
+  -- which-key (keymap discovery)
+  {
+    "folke/which-key.nvim",
+    event = "VimEnter",
+    config = function()
+      require("which-key").setup()
+      require("which-key").add({
+        { "<leader>s", group = "[S]earch" },
+        { "<leader>c", group = "[C]ode" },
+        { "<leader>b", group = "[B]uffer" },
+        { "<leader>g", group = "[G]it" },
+      })
+    end,
+  },
+
+  -- ----------------------------------------------------------
+  --  Search & navigation
+  -- ----------------------------------------------------------
+
+  -- Telescope (fuzzy finder)
+  {
+    "nvim-telescope/telescope.nvim",
+    branch = "master",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      { "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
+      "nvim-telescope/telescope-ui-select.nvim",
+    },
+    config = function()
+      local telescope = require("telescope")
+      telescope.setup({
+        defaults = {
+          sorting_strategy = "ascending",
+          layout_config = {
+            horizontal = { prompt_position = "top" },
+          },
+        },
+        extensions = {
+          ["ui-select"] = {
+            require("telescope.themes").get_dropdown(),
+          },
+        },
+      })
+
+      pcall(telescope.load_extension, "fzf")
+      pcall(telescope.load_extension, "ui-select")
+
+      local builtin = require("telescope.builtin")
+      vim.keymap.set("n", "<leader>sf", builtin.find_files, { desc = "[S]earch [F]iles" })
+      vim.keymap.set("n", "<leader>sg", builtin.live_grep, { desc = "[S]earch [G]rep" })
+      vim.keymap.set("n", "<leader>sw", builtin.grep_string, { desc = "[S]earch current [W]ord" })
+      vim.keymap.set("n", "<leader>sh", builtin.help_tags, { desc = "[S]earch [H]elp" })
+      vim.keymap.set("n", "<leader>sk", builtin.keymaps, { desc = "[S]earch [K]eymaps" })
+      vim.keymap.set("n", "<leader>sd", builtin.diagnostics, { desc = "[S]earch [D]iagnostics" })
+      vim.keymap.set("n", "<leader>sr", builtin.resume, { desc = "[S]earch [R]esume" })
+      vim.keymap.set("n", "<leader>s.", builtin.oldfiles, { desc = "[S]earch Recent Files" })
+      vim.keymap.set("n", "<leader><leader>", builtin.buffers, { desc = "Find buffers" })
+      vim.keymap.set("n", "<leader>/", builtin.current_buffer_fuzzy_find, { desc = "Fuzzy search in buffer" })
+
+      -- LSP via Telescope
+      vim.keymap.set("n", "<leader>cs", builtin.lsp_document_symbols, { desc = "[C]ode [S]ymbols" })
+      vim.keymap.set("n", "<leader>cS", builtin.lsp_workspace_symbols, { desc = "[C]ode Workspace [S]ymbols" })
+    end,
+  },
+
+  -- flash.nvim (fast navigation)
+  {
+    "folke/flash.nvim",
+    event = "VeryLazy",
+    opts = {},
+    keys = {
+      { "s", mode = { "n", "x", "o" }, function() require("flash").jump() end, desc = "Flash" },
+      { "S", mode = { "n", "x", "o" }, function() require("flash").treesitter() end, desc = "Flash Treesitter" },
+      { "<c-s>", mode = { "c" }, function() require("flash").toggle() end, desc = "Toggle Flash Search" },
+    },
+  },
+
+  -- ----------------------------------------------------------
+  --  Editing
+  -- ----------------------------------------------------------
+
   -- Treesitter
   {
     "nvim-treesitter/nvim-treesitter",
@@ -155,6 +285,52 @@ require("lazy").setup({
       })
     end,
   },
+
+  -- Autopairs
+  { "windwp/nvim-autopairs", event = "InsertEnter", opts = {} },
+
+  -- Comment
+  { "numToStr/Comment.nvim", opts = {} },
+
+  -- conform.nvim (auto-formatting)
+  {
+    "stevearc/conform.nvim",
+    event = { "BufWritePre" },
+    cmd = { "ConformInfo" },
+    keys = {
+      {
+        "<leader>bf",
+        function()
+          require("conform").format({ async = true, lsp_fallback = true })
+        end,
+        mode = "",
+        desc = "[B]uffer [F]ormat",
+      },
+    },
+    opts = {
+      notify_on_error = true,
+      format_on_save = function(bufnr)
+        local disable_filetypes = { c = true, cpp = true }
+        return {
+          timeout_ms = 500,
+          lsp_fallback = not disable_filetypes[vim.bo[bufnr].filetype],
+        }
+      end,
+      formatters_by_ft = {
+        lua = { "stylua" },
+        python = { "isort", "black" },
+        javascript = { "prettierd", "prettier", stop_after_first = true },
+        typescript = { "prettierd", "prettier", stop_after_first = true },
+        json = { "prettierd", "prettier", stop_after_first = true },
+        yaml = { "prettierd", "prettier", stop_after_first = true },
+        -- C/C++ formatting via clangd LSP fallback (or add "clang-format" here)
+      },
+    },
+  },
+
+  -- ----------------------------------------------------------
+  --  LSP & completion
+  -- ----------------------------------------------------------
 
   -- LSP
   {
@@ -279,132 +455,19 @@ require("lazy").setup({
     end,
   },
 
-  -- Git signs
+  -- ----------------------------------------------------------
+  --  Git
+  -- ----------------------------------------------------------
   { "lewis6991/gitsigns.nvim", opts = {} },
 
-  -- Autopairs
-  { "windwp/nvim-autopairs", event = "InsertEnter", opts = {} },
-
-  -- Comment
-  { "numToStr/Comment.nvim", opts = {} },
+  -- ----------------------------------------------------------
+  --  Sessions & remote
+  -- ----------------------------------------------------------
 
   -- Session management
   {
     "rmagatti/auto-session",
     opts = { auto_save = true, auto_restore = true },
-  },
-
-  -- =====================================================
-  -- NEW PLUGINS
-  -- =====================================================
-
-  -- Telescope (fuzzy finder)
-  {
-    "nvim-telescope/telescope.nvim",
-    branch = "master",
-    dependencies = {
-      "nvim-lua/plenary.nvim",
-      { "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
-      "nvim-telescope/telescope-ui-select.nvim",
-    },
-    config = function()
-      local telescope = require("telescope")
-      telescope.setup({
-        defaults = {
-          sorting_strategy = "ascending",
-          layout_config = {
-            horizontal = { prompt_position = "top" },
-          },
-        },
-        extensions = {
-          ["ui-select"] = {
-            require("telescope.themes").get_dropdown(),
-          },
-        },
-      })
-
-      pcall(telescope.load_extension, "fzf")
-      pcall(telescope.load_extension, "ui-select")
-
-      local builtin = require("telescope.builtin")
-      vim.keymap.set("n", "<leader>sf", builtin.find_files, { desc = "[S]earch [F]iles" })
-      vim.keymap.set("n", "<leader>sg", builtin.live_grep, { desc = "[S]earch [G]rep" })
-      vim.keymap.set("n", "<leader>sw", builtin.grep_string, { desc = "[S]earch current [W]ord" })
-      vim.keymap.set("n", "<leader>sh", builtin.help_tags, { desc = "[S]earch [H]elp" })
-      vim.keymap.set("n", "<leader>sk", builtin.keymaps, { desc = "[S]earch [K]eymaps" })
-      vim.keymap.set("n", "<leader>sd", builtin.diagnostics, { desc = "[S]earch [D]iagnostics" })
-      vim.keymap.set("n", "<leader>sr", builtin.resume, { desc = "[S]earch [R]esume" })
-      vim.keymap.set("n", "<leader>s.", builtin.oldfiles, { desc = "[S]earch Recent Files" })
-      vim.keymap.set("n", "<leader><leader>", builtin.buffers, { desc = "Find buffers" })
-      vim.keymap.set("n", "<leader>/", builtin.current_buffer_fuzzy_find, { desc = "Fuzzy search in buffer" })
-
-      -- LSP via Telescope
-      vim.keymap.set("n", "<leader>cs", builtin.lsp_document_symbols, { desc = "[C]ode [S]ymbols" })
-      vim.keymap.set("n", "<leader>cS", builtin.lsp_workspace_symbols, { desc = "[C]ode Workspace [S]ymbols" })
-    end,
-  },
-
-  -- conform.nvim (auto-formatting)
-  {
-    "stevearc/conform.nvim",
-    event = { "BufWritePre" },
-    cmd = { "ConformInfo" },
-    keys = {
-      {
-        "<leader>bf",
-        function()
-          require("conform").format({ async = true, lsp_fallback = true })
-        end,
-        mode = "",
-        desc = "[B]uffer [F]ormat",
-      },
-    },
-    opts = {
-      notify_on_error = true,
-      format_on_save = function(bufnr)
-        local disable_filetypes = { c = true, cpp = true }
-        return {
-          timeout_ms = 500,
-          lsp_fallback = not disable_filetypes[vim.bo[bufnr].filetype],
-        }
-      end,
-      formatters_by_ft = {
-        lua = { "stylua" },
-        python = { "isort", "black" },
-        javascript = { "prettierd", "prettier", stop_after_first = true },
-        typescript = { "prettierd", "prettier", stop_after_first = true },
-        json = { "prettierd", "prettier", stop_after_first = true },
-        yaml = { "prettierd", "prettier", stop_after_first = true },
-        -- C/C++ formatting via clangd LSP fallback (or add "clang-format" here)
-      },
-    },
-  },
-
-  -- flash.nvim (fast navigation)
-  {
-    "folke/flash.nvim",
-    event = "VeryLazy",
-    opts = {},
-    keys = {
-      { "s", mode = { "n", "x", "o" }, function() require("flash").jump() end, desc = "Flash" },
-      { "S", mode = { "n", "x", "o" }, function() require("flash").treesitter() end, desc = "Flash Treesitter" },
-      { "<c-s>", mode = { "c" }, function() require("flash").toggle() end, desc = "Toggle Flash Search" },
-    },
-  },
-
-  -- which-key (keymap discovery)
-  {
-    "folke/which-key.nvim",
-    event = "VimEnter",
-    config = function()
-      require("which-key").setup()
-      require("which-key").add({
-        { "<leader>s", group = "[S]earch" },
-        { "<leader>c", group = "[C]ode" },
-        { "<leader>b", group = "[B]uffer" },
-        { "<leader>g", group = "[G]it" },
-      })
-    end,
   },
 
   -- Remote editing
@@ -437,6 +500,10 @@ require("lazy").setup({
     end,
   },
 
+  -- ----------------------------------------------------------
+  --  AI
+  -- ----------------------------------------------------------
+
   -- Claude Code integration
   {
     "coder/claudecode.nvim",
@@ -458,15 +525,4 @@ require("lazy").setup({
       { "<leader>ab", "<cmd>ClaudeCodeAdd %<cr>", desc = "[A]I add [B]uffer" },
     },
   },
-})
-
--- Auto-run bemol on VimEnter for Brazil workspaces
-vim.api.nvim_create_autocmd("VimEnter", {
-  callback = function()
-    local package_info = vim.fs.find({ "packageInfo" }, { upward = true })[1]
-    if package_info then
-      local ws_root = vim.fn.fnamemodify(package_info, ":h")
-      vim.fn.system("cd " .. vim.fn.shellescape(ws_root) .. " && bemol 2>/dev/null")
-    end
-  end,
 })

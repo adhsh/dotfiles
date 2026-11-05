@@ -1,0 +1,78 @@
+" ============================================================
+"  General
+" ============================================================
+set nocompatible
+set encoding=utf-8
+set noswapfile
+set clipboard=unnamed
+set visualbell
+set mouse=a
+
+
+" ============================================================
+"  Plugins (vim-plug)
+" ============================================================
+call plug#begin('~/.vim/plugged')
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
+Plug 'vim-fuzzbox/fuzzbox.vim'
+Plug 'dense-analysis/ale'
+Plug 'morhetz/gruvbox'
+call plug#end()
+
+
+" ============================================================
+"  UI / Appearance
+" ============================================================
+syntax on
+set background=dark
+colorscheme gruvbox
+set number
+set ruler
+set wildmenu
+set scrolloff=8
+
+
+" ============================================================
+"  Search
+" ============================================================
+set hlsearch
+set incsearch
+set ignorecase
+set smartcase
+
+
+" ============================================================
+"  Indentation
+" ============================================================
+set tabstop=4
+set softtabstop=4
+set shiftwidth=4
+set expandtab
+set autoindent
+set smartindent
+set backspace=indent,eol,start
+
+
+" ============================================================
+"  FZF
+" ============================================================
+command! -bang -nargs=* Rg
+  \ call fzf#vim#grep(
+  \   'rg --column --line-number --no-heading --color=always --smart-case -- '.shellescape(<q-args>),
+  \   1, fzf#vim#with_preview(), <bang>0)
+
+nnoremap <C-p> :Files<CR>
+nnoremap <leader>fg :Rg<CR>
+nnoremap <leader>fb :Buffers<CR>
+
+
+" ============================================================
+"  ALE (linting / LSP)
+" ============================================================
+let g:ale_completion_enabled=1
+set omnifunc=ale#completion#omniFunc
+
+nnoremap gd :ALEGoToDefinition<CR>
+nnoremap gr :ALEFindReferences<CR>
+nnoremap gh :ALEHover<CR>
