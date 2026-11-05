@@ -18,6 +18,7 @@ Plug 'junegunn/fzf.vim'
 Plug 'vim-fuzzbox/fuzzbox.vim'
 Plug 'dense-analysis/ale'
 Plug 'morhetz/gruvbox'
+Plug 'ryanoasis/vim-devicons'
 call plug#end()
 
 
