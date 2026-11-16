@@ -2,6 +2,7 @@
 "  General
 " ============================================================
 set nocompatible
+let mapleader = " "   " must be set before any <leader> mappings
 set encoding=utf-8
 set noswapfile
 set clipboard=unnamed
@@ -15,7 +16,6 @@ set mouse=a
 call plug#begin('~/.vim/plugged')
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
-Plug 'vim-fuzzbox/fuzzbox.vim'
 Plug 'dense-analysis/ale'
 Plug 'morhetz/gruvbox'
 Plug 'ryanoasis/vim-devicons'
@@ -64,9 +64,7 @@ command! -bang -nargs=* Rg
   \   1, fzf#vim#with_preview(), <bang>0)
 
 nnoremap <C-p> :Files<CR>
-nnoremap <leader>fg :Rg<CR>
-nnoremap <leader>fb :Buffers<CR>
-
+set rtp+=/opt/homebrew/opt/fzf
 
 " ============================================================
 "  ALE (linting / LSP)
